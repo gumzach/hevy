@@ -65,9 +65,9 @@ async def test_stdio():
                 print(f"   - {tool.name}: {tool.description}")
             print()
 
-            # Test the example_tool
-            print("🧪 Testing example_tool...")
-            result = await session.call_tool("example_tool", {"query": "hello world"})
+            # Test get_user_info
+            print("🧪 Testing get_user_info...")
+            result = await session.call_tool("get_user_info", {})
             print(f"   Result: {result.content}")
             print()
 

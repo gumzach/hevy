@@ -34,4 +34,4 @@ When deployed to Gumstack, users will enter their api_key in the Gumstack UI.
 
 ## Tools
 
-- `example_tool` - Example tool demonstrating credential usage
+22 tools covering workouts, routines, exercise templates, routine folders, exercise history, body measurements, and user info. See `config.yaml` for the full list.

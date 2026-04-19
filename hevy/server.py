@@ -1,3 +1,4 @@
+import importlib
 import logging
 import os
 
@@ -7,44 +8,53 @@ from mcp.server.fastmcp import FastMCP
 from starlette.requests import Request
 from starlette.responses import JSONResponse
 
-from hevy.utils.auth import get_credentials
-
-
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
 )
 logger = logging.getLogger(__name__)
 
-# Get port from environment variable (default 8000 for local, 8080 for Knative)
 PORT = int(os.environ.get("PORT", 8000))
-
 mcp = FastMCP("hevy", host="0.0.0.0", port=PORT)
 
-# Health check endpoint for Knative readiness/liveness probes
+
 @mcp.custom_route("/health_check", methods=["GET"])
 async def health_check(request: Request) -> JSONResponse:
     return JSONResponse({"status": "ok"})
 
-@mcp.tool()
-async def example_tool(query: str) -> str:
-    """
-    Example tool using user-provided credentials.
 
-    Args:
-        query: The query to process
-    """
-    creds = await get_credentials()
-    api_key = creds.get("api_key", "")
-    logger.info("Processing with credential: %s...", api_key[:8])
-    return f"Processed: {query}"
+_DOMAIN_MODULES = [
+    "hevy.tools.user",
+    "hevy.tools.workouts",
+    "hevy.tools.routines",
+    "hevy.tools.exercises",
+    "hevy.tools.measurements",
+]
+
+
+def _register_tools() -> None:
+    registered = 0
+    for mod_path in _DOMAIN_MODULES:
+        try:
+            module = importlib.import_module(mod_path)
+        except ImportError as exc:
+            logger.warning("Could not import %s: %s (skipping)", mod_path, exc)
+            continue
+        tools = getattr(module, "TOOLS", [])
+        for fn in tools:
+            mcp.tool()(fn)
+            registered += 1
+        logger.info("Registered %d tools from %s", len(tools), mod_path)
+    logger.info("Total tools registered: %d", registered)
+
+
+_register_tools()
 
 
 def main():
     load_dotenv()
     if os.environ.get("ENVIRONMENT") != "local":
         host = GumstackHost(mcp)
-
         host.run(host="0.0.0.0", port=PORT)
     else:
         mcp.run(transport="streamable-http")

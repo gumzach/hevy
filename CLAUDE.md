@@ -29,6 +29,8 @@ exercise history, body measurements, and user info. A new tool must be added in 
 
 Gumstack only detects tools that appear in `config.yaml`. Missing the entry means the tool silently won't be exposed in the Gumstack UI.
 
+**`config.yaml` descriptions must say *when* to call the tool, not just *what* it does.** Empirically: terse one-liners like `"Get a paginated list of X"` cause Gumloop's tool discovery to underperform — agents don't reliably pick the right tool. The fix is framing every description around the use case (e.g. `"Browse recent workouts — use when summarizing training history or finding a session to reference"`). The Python docstring separately drives LLM decisions at call time, but the `config.yaml` description is what Gumloop's discovery layer and the Gumstack tool picker see.
+
 Every tool must: be `async def`, return a Pydantic `BaseModel` (never a raw `dict`/`list`/
 scalar — Gumloop needs named output pins), use `Field(description=...)` on every parameter
 and every model field, and call out through the shared `hevy.utils.client.hevy_request(...)`

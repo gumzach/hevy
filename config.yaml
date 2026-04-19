@@ -1,0 +1,13 @@
+name: "hevy"
+description: "Hevy Workout App MCP."
+icon: "assets/icon.png"
+
+auth:
+  type: cred
+  credentials:
+    - name: "api_key"
+      label: "Hevy Developer API Key"
+      secret: true
+tools:
+  - name: "example_tool"
+    description: "Example tool demonstrating credential usage"
